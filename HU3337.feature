@@ -1,4 +1,115 @@
 # ============================================
+# HU31 - Edición de publicaciones de incidentes
+# ============================================
+
+Feature: Edición de publicaciones de incidentes
+Como comerciante/residente
+Quiero editar el título, la descripción, las imágenes y la ubicación de una publicación
+Para corregir o ampliar la información del incidente
+
+Scenario Outline: Escenario 1 - Edición básica desde Detalle de publicación
+    Dado que el <usuario> es el autor de la <publicación>
+    Y se encuentra en la pantalla “<pantalla_editar>”
+    Cuando modifica uno o más <campos> y presiona “<botón_guardar>”
+    Entonces el <sistema> muestra la <publicación_actualizada>
+    Y añade la etiqueta “<editado>” con fecha/hora
+    Y mantiene la <url_original>
+
+    Examples: Datos de entrada
+      | usuario              | publicación | pantalla_editar     | campos             | botón_guardar |
+      | Comerciante/Residente | Incidente A | Editar publicación  | título y descripción | Guardar cambios |
+
+    Examples: Datos de salida
+      | sistema | publicación_actualizada | editado | url_original |
+      | App Web | Publicación actualizada | Editado con hora | Conservada |
+
+Scenario Outline: Escenario 2 - Historial de ediciones disponible
+    Dado que existen <ediciones_previas> de la <publicación>
+    Y el <usuario> está en la pantalla “<detalle_publicación>”
+    Cuando selecciona “<ver_historial>”
+    Entonces el <sistema> muestra una <lista_cronológica> con fecha/hora y resumen de cambios
+    Y esta lista es visible para el <autor_y_moderación>
+
+    Examples: Datos de entrada
+      | usuario              | publicación | ediciones_previas | detalle_publicación | ver_historial |
+      | Comerciante/Residente | Incidente A | Sí                | Detalle de publicación | Ver historial |
+
+    Examples: Datos de salida
+      | sistema | lista_cronológica | autor_y_moderación |
+      | App Web | Lista de versiones previas | Visible |
+
+Scenario Outline: Escenario 3 - Restricción por verificación o bloqueo
+    Dado que la <publicación> está en estado “<estado_publicación>”
+    Y el <usuario> intenta abrir el modo de edición desde “<mis_publicaciones>”
+    Cuando presiona “<botón_editar>”
+    Entonces el <sistema> impide la edición
+    Y muestra el mensaje “<mensaje_restricción>”
+
+    Examples: Datos de entrada
+      | usuario              | publicación | estado_publicación | mis_publicaciones | botón_editar |
+      | Comerciante/Residente | Incidente A | Verificada          | Mis publicaciones | Editar |
+
+    Examples: Datos de salida
+      | sistema | mensaje_restricción |
+      | App Web | No se puede editar mientras esté verificada/bloqueada |
+
+Scenario Outline: Escenario 4 - Edición sin conexión
+    Dado que el <dispositivo> no cuenta con <conexión>
+    Y el <usuario> se encuentra en el modo de edición de la <publicación>
+    Cuando presiona “<botón_guardar>”
+    Entonces el <sistema> guarda la edición como “<pendiente_sinc>”
+    Y muestra el estado hasta que se recupere la <conexión>
+
+    Examples: Datos de entrada
+      | usuario              | dispositivo | publicación | conexión | botón_guardar |
+      | Comerciante/Residente | Teléfono móvil | Incidente A | Sin conexión | Guardar cambios |
+
+    Examples: Datos de salida
+      | sistema | pendiente_sinc | conexión |
+      | App Web | Pendiente de sincronización | Se actualiza al reconectarse |
+
+
+# ============================================
+# HU32 - Eliminación de publicaciones
+# ============================================
+
+Feature: Eliminación de publicaciones
+Como comerciante/residente
+Quiero eliminar mis publicaciones y poder restaurarlas en un lapso de 48 horas
+Para mantener control sobre mi contenido
+
+Scenario Outline: Escenario 1 - Eliminación definitiva
+    Dado que el <usuario> está en la pantalla de “<mis_publicaciones>”
+    Y desea borrar una <publicación>
+    Cuando presiona el <botón_eliminar> y confirma la <acción_eliminar>
+    Entonces el <sistema> elimina la publicación de forma irreversible
+    Y deja de mostrarla en listados y búsquedas en <tiempo_eliminación>
+
+    Examples: Datos de entrada
+      | usuario              | mis_publicaciones | publicación | botón_eliminar | acción_eliminar |
+      | Comerciante/Residente | Mis publicaciones | Incidente A | Tacho de basura | Confirmar eliminación |
+
+    Examples: Datos de salida
+      | sistema | tiempo_eliminación |
+      | App Web | 2 días |
+
+Scenario Outline: Escenario 2 - Cancelar eliminación durante el periodo de retención
+    Dado que la <publicación> fue eliminada y no han pasado más de <tiempo_retenido>
+    Y el <usuario> abre “<mis_publicaciones>”
+    Cuando presiona “<cancelar_eliminación>” sobre una <publicación>
+    Entonces el <sistema> revierte el estado
+    Y la <publicación> vuelve a estar disponible en el <foro>
+
+    Examples: Datos de entrada
+      | usuario              | publicación | tiempo_retenido | mis_publicaciones | cancelar_eliminación |
+      | Comerciante/Residente | Incidente A | 48 horas | Mis publicaciones | Cancelar eliminación |
+
+    Examples: Datos de salida
+      | sistema | foro |
+      | App Web | Publicación restaurada |
+
+
+# ============================================
 # HU33 - Visualizar los planes de suscripción
 # ============================================
 
@@ -312,4 +423,5 @@ Feature: Eliminar incidentes registrados en el sistema técnico
 
     Examples: Datos de salida
       | código de estado | mensaje |
+
       | 500 | "Error interno del servidor – No se pudo eliminar el incidente" |
